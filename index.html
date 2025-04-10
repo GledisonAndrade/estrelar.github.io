@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estrelar - Fuga Intergaláctica</title>
+    <style>
+        /* Reset e Configurações Gerais */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #000;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        /* Menu Principal */
+        #menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, #000a 0%, #000f 100%), 
+                        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="%23fff" opacity="0.5"/></svg>');
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            text-align: center;
+        }
+        
+        #menu h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: #4af;
+            text-shadow: 0 0 15px #4af, 0 0 30px #4af;
+            letter-spacing: 3px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #4af, 0 0 20px #4af; }
+            to { text-shadow: 0 0 15px #4af, 0 0 30px #4af, 0 0 40px #4af; }
+        }
+        
+        #menu p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+        
+        .menu-buttons {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .menu-btn {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background: linear-gradient(to bottom, #4af 0%, #26a 100%);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 100, 255, 0.4);
+        }
+        
+        .menu-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 100, 255, 0.6);
+        }
+        
+        .menu-btn:active {
+            transform: translateY(1px);
+        }
+        
+        /* Área do Jogo */
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            background: #000 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="%23fff" opacity="0.5"/></svg>');
+        }
+        
+        /* Elementos do Jogo */
+        #player {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><polygon points="25,0 10,50 25,40 40,50" fill="%234af"/></svg>');
+            background-size: contain;
+            z-index: 10;
+            transition: transform 0.1s;
+        }
+        
+        .meteor {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="%23aaa"/><circle cx="15" cy="15" r="5" fill="%23ddd"/></svg>');
+            background-size: contain;
+            z-index: 5;
+        }
+        
+        .enemy {
+            position: absolute;
+            width: 45px;
+            height: 45px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"><polygon points="22.5,0 0,20 10,45 35,45 45,20" fill="%23f44"/><circle cx="22.5" cy="22.5" r="8" fill="%23800"/></svg>');
+            background-size: contain;
+            z-index: 5;
+            animation: enemyPulse 1s infinite alternate;
+        }
+        
+        @keyframes enemyPulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+        
+        .boss {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><polygon points="40,0 0,30 15,80 65,80 80,30" fill="%23f44"/><circle cx="40" cy="40" r="15" fill="%23800"/><circle cx="40" cy="40" r="8" fill="%23f00"/></svg>');
+            background-size: contain;
+            z-index: 6;
+            animation: bossGlow 1.5s infinite alternate;
+        }
+        
+        @keyframes bossGlow {
+            from { filter: drop-shadow(0 0 5px #f00); }
+            to { filter: drop-shadow(0 0 15px #f00); }
+        }
+        
+        .bullet {
+            position: absolute;
+            width: 5px;
+            height: 15px;
+            background-color: #ff0;
+            z-index: 8;
+            border-radius: 3px;
+        }
+        
+        .enemy-bullet {
+            background-color: #f44;
+        }
+        
+        .powerup {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-size: contain;
+            z-index: 7;
+            animation: pulse 1s infinite, float 3s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .health-powerup {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><path d="M15,5 L25,15 L15,25 L5,15 Z" fill="%23f44"/></svg>');
+        }
+        
+        .weapon-powerup {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><path d="M15,5 L20,20 L5,15 Z" fill="%24ff0"/><path d="M15,5 L10,20 L25,15 Z" fill="%24ff0"/></svg>');
+        }
+        
+        /* HUD - Interface do Jogador */
+        .hud {
+            position: absolute;
+            color: white;
+            font-size: 1.2rem;
+            text-shadow: 0 0 5px #000;
+            z-index: 20;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+        }
+        
+        #score-display {
+            top: 10px;
+            left: 10px;
+        }
+        
+        #health-display {
+            top: 10px;
+            right: 10px;
+        }
+        
+        #phase-display {
+            top: 50px;
+            left: 10px;
+            color: #4af;
+        }
+        
+        #objective-display {
+            bottom: 10px;
+            left: 10px;
+            color: #4f4;
+            max-width: 80%;
+        }
+        
+        /* Telas de Game Over e Vitória */
+        .game-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            text-align: center;
+        }
+        
+        .game-screen h2 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            color: #4af;
+            text-shadow: 0 0 10px #4af;
+        }
+        
+        .game-screen p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        #game-over h2 {
+            color: #f44;
+            text-shadow: 0 0 10px #f44;
+        }
+        
+        #victory h2 {
+            color: #4f4;
+            text-shadow: 0 0 10px #4f4;
+            animation: victoryGlow 2s infinite alternate;
+        }
+        
+        @keyframes victoryGlow {
+            from { text-shadow: 0 0 10px #4f4; }
+            to { text-shadow: 0 0 20px #4f4, 0 0 30px #4f4; }
+        }
+        
+        #phase-transition h2 {
+            color: #ff0;
+            text-shadow: 0 0 10px #ff0;
+            animation: phaseTransition 1.5s infinite alternate;
+        }
+        
+        @keyframes phaseTransition {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        
+        /* Efeitos Visuais */
+        .explosion {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-image: radial-gradient(circle, #ff0 0%, #f80 50%, transparent 70%);
+            border-radius: 50%;
+            z-index: 9;
+            animation: explode 0.5s forwards;
+        }
+        
+        @keyframes explode {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        /* Player Upgrade */
+        .player-upgrade {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><polygon points="25,0 10,50 25,35 40,50" fill="%234af"/><circle cx="25" cy="20" r="5" fill="%23ff0"/></svg>') !important;
+            filter: drop-shadow(0 0 5px #4af);
+        }
+        
+        /* Mensagens Temporárias */
+        .game-message {
+            position: absolute;
+            left: 50%;
+            top: 30%;
+            transform: translateX(-50%);
+            color: #ff0;
+            font-size: 1.5rem;
+            text-shadow: 0 0 5px #000, 0 0 10px #000;
+            z-index: 50;
+            text-align: center;
+            animation: messageFade 3s forwards;
+        }
+        
+        @keyframes messageFade {
+            0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Principal -->
+    <div id="menu">
+        <h1>ESTRELAR</h1>
+        <p>Sua nave está em busca de um mundo seguro em meio a uma galáxia hostil!<br>
+        Evite meteoros, destrua naves inimigas e sobreviva até encontrar o portal seguro.</p>
+        
+        <div class="menu-buttons">
+            <button class="menu-btn" id="start-btn">Iniciar Jogo</button>
+            <button class="menu-btn" id="instructions-btn">Instruções</button>
+        </div>
+    </div>
+
+    <!-- Área do Jogo -->
+    <div id="game-container">
+        <!-- HUD - Interface do Jogador -->
+        <div class="hud" id="score-display">Pontos: 0</div>
+        <div class="hud" id="health-display">Vidas: 3</div>
+        <div class="hud" id="phase-display">Fase: 1 - Sistema Kepler</div>
+        <div class="hud" id="objective-display">Objetivo: Alcance 200 pontos</div>
+        
+        <!-- Elementos do Jogo -->
+        <div id="player"></div>
+        
+        <!-- Telas de Estado do Jogo -->
+        <div class="game-screen" id="game-over">
+            <h2>FIM DE JOGO</h2>
+            <p id="final-score">Sua pontuação: 0</p>
+            <button class="menu-btn" id="restart-btn">Jogar Novamente</button>
+        </div>
+        
+        <div class="game-screen" id="victory">
+            <h2>VITÓRIA!</h2>
+            <p>Você encontrou um mundo seguro!</p>
+            <p id="victory-score">Sua pontuação: 0</p>
+            <button class="menu-btn" id="victory-restart-btn">Jogar Novamente</button>
+        </div>
+        
+        <div class="game-screen" id="phase-transition">
+            <h2>FASE COMPLETA!</h2>
+            <p id="phase-summary">Você avançou para o próximo sistema!</p>
+            <button class="menu-btn" id="next-phase-btn">Continuar</button>
+        </div>
+    </div>
+
+    <script>
+        // ========== CONFIGURAÇÕES DO JOGO ==========
+        const GAME_CONFIG = {
+            phases: [
+                { 
+                    name: "Sistema Kepler", 
+                    goal: 200, 
+                    meteorInterval: 1500, 
+                    enemyInterval: 2000, 
+                    enemySpeed: 1.5,
+                    bgColor: "#001122"
+                },
+                { 
+                    name: "Nebulosa Orion", 
+                    goal: 300, 
+                    meteorInterval: 1200, 
+                    enemyInterval: 1500, 
+                    enemySpeed: 2, 
+                    boss: false,
+                    bgColor: "#110033"
+                },
+                { 
+                    name: "Cinturão de Asteroides", 
+                    goal: 450, 
+                    meteorInterval: 900, 
+                    enemyInterval: 1200, 
+                    enemySpeed: 2.5, 
+                    boss: true,
+                    bgColor: "#331100"
+                },
+                { 
+                    name: "Portal Quântico", 
+                    goal: 600, 
+                    meteorInterval: 700, 
+                    enemyInterval: 900, 
+                    enemySpeed: 3, 
+                    boss: true,
+                    bgColor: "#003322"
+                }
+            ],
+            upgrades: [
+                { score: 300, health: +1, bulletSpeed: +2, playerSpeed: +1 },
+                { score: 450, health: +1, bulletSpeed: +2, playerSpeed: +1 },
+                { score: 600, health: +1, bulletSpeed: +3, playerSpeed: +2 }
+            ],
+            powerupInterval: 15000, // 15 segundos
+            bossHealth: 10
+        };
+
+        // ========== VARIÁVEIS DO JOGO ==========
+        // Elementos do DOM
+        const menu = document.getElementById('menu');
+        const gameContainer = document.getElementById('game-container');
+        const player = document.getElementById('player');
+        const scoreDisplay = document.getElementById('score-display');
+        const healthDisplay = document.getElementById('health-display');
+        const phaseDisplay = document.getElementById('phase-display');
+        const objectiveDisplay = document.getElementById('objective-display');
+        const gameOverScreen = document.getElementById('game-over');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const victoryScreen = document.getElementById('victory');
+        const victoryScoreDisplay = document.getElementById('victory-score');
+        const phaseTransitionScreen = document.getElementById('phase-transition');
+        const phaseSummary = document.getElementById('phase-summary');
+
+        // Estado do jogo
+        let playerX = window.innerWidth / 2;
+        let playerY = window.innerHeight - 100;
+        let playerSpeed = 8;
+        let playerBulletSpeed = 10;
+        let score = 0;
+        let health = 3;
+        let currentPhase = 0;
+        let gameRunning = false;
+        let bossActive = false;
+        let lastPowerupTime = 0;
+        
+        // Arrays de elementos
+        let meteors = [];
+        let enemies = [];
+        let bullets = [];
+        let powerups = [];
+        let explosions = [];
+        let messages = [];
+        
+        // Controles
+        let keys = {};
+        let intervals = {
+            game: null,
+            meteor: null,
+            enemy: null,
+            powerup: null,
+            boss: null
+        };
+
+        // ========== INICIALIZAÇÃO DO JOGO ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            // Event listeners
+            document.getElementById('start-btn').addEventListener('click', startGame);
+            document.getElementById('restart-btn').addEventListener('click', restartGame);
+            document.getElementById('victory-restart-btn').addEventListener('click', restartGame);
+            document.getElementById('next-phase-btn').addEventListener('click', startNextPhase);
+            document.getElementById('instructions-btn').addEventListener('click', showInstructions);
+            
+            // Controles de teclado
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+        });
+
+        function showInstructions() {
+            showMessage("CONTROLES:\n\n← → ↑ ↓ ou WASD: Mover nave\nESPAÇO: Atirar\n\nOBJETIVO:\nSobreviva através de 4 fases\nDestrua naves inimigas para pontos\nEncontre o portal seguro!", 5000);
+        }
+
+        function startGame() {
+            // Resetar estado do jogo
+            resetGameState();
+            
+            // Configurar interface
+            menu.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            victoryScreen.style.display = 'none';
+            phaseTransitionScreen.style.display = 'none';
+            
+            // Posicionar jogador
+            playerX = window.innerWidth / 2 - 25;
+            playerY = window.innerHeight - 100;
+            updatePlayerPosition();
+            
+            // Atualizar HUD
+            updateScore();
+            updateHealth();
+            updatePhaseDisplay();
+            updateObjectiveDisplay();
+            
+            // Iniciar loops do jogo
+            startGameLoops();
+            
+            // Feedback ao jogador
+            showMessage("Fase 1: Sistema Kepler\nObjetivo: 200 pontos", 3000);
+        }
+
+        function resetGameState() {
+            // Limpar estado anterior
+            clearGameElements();
+            clearIntervals();
+            
+            // Resetar variáveis
+            score = 0;
+            health = 3;
+            currentPhase = 0;
+            bossActive = false;
+            playerSpeed = 8;
+            playerBulletSpeed = 10;
+            
+            // Resetar nave do jogador
+            player.className = '';
+            player.id = 'player';
+        }
+
+        function clearGameElements() {
+            // Remover todos os elementos do jogo
+            document.querySelectorAll('.meteor, .enemy, .bullet, .powerup, .boss, .explosion, .game-message').forEach(el => el.remove());
+            
+            // Limpar arrays
+            meteors = [];
+            enemies = [];
+            bullets = [];
+            powerups = [];
+            explosions = [];
+            messages = [];
+        }
+
+        function clearIntervals() {
+            // Parar todos os intervalos
+            for (let key in intervals) {
+                if (intervals[key]) {
+                    clearInterval(intervals[key]);
+                    intervals[key] = null;
+                }
+            }
+        }
+
+        function startGameLoops() {
+            gameRunning = true;
+            
+            // Configurar intervalos baseados na fase atual
+            const phase = GAME_CONFIG.phases[currentPhase];
+            
+            // Intervalo principal do jogo (60 FPS)
+            intervals.game = setInterval(updateGame, 1000/60);
+            
+            // Criar meteoros
+            intervals.meteor = setInterval(createMeteor, phase.meteorInterval);
+            
+            // Criar inimigos
+            intervals.enemy = setInterval(createEnemy, phase.enemyInterval);
+            
+            // Criar powerups
+            intervals.powerup = setInterval(checkPowerupSpawn, 1000);
+            
+            // Definir cor de fundo da fase
+            gameContainer.style.backgroundColor = phase.bgColor;
+            
+            // Se a fase tem boss, agendar aparecimento
+            if (phase.boss) {
+                setTimeout(() => {
+                    if (gameRunning && !bossActive) {
+                        createBoss();
+                    }
+                }, 15000); // Boss aparece após 15 segundos
+            }
+        }
+
+        // ========== LOOP PRINCIPAL DO JOGO ==========
+        function updateGame() {
+            if (!gameRunning) return;
+            
+            // Movimentação do jogador
+            updatePlayerMovement();
+            
+            // Atualizar elementos do jogo
+            updateMeteors();
+            updateEnemies();
+            updateBullets();
+            updatePowerups();
+            updateExplosions();
+            
+            // Verificar upgrades
+            checkUpgrades();
+            
+            // Verificar progressão de fase
+            checkPhaseProgression();
+            
+            // Verificar vitória final
+            checkFinalVictory();
+        }
+
+        function updatePlayerMovement() {
+            // Movimento horizontal
+            if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
+                playerX = Math.max(0, playerX - playerSpeed);
+            }
+            if (keys['ArrowRight'] || keys['d'] || keys['D']) {
+                playerX = Math.min(window.innerWidth - 50, playerX + playerSpeed);
+            }
+            
+            // Movimento vertical
+            if (keys['ArrowUp'] || keys['w'] || keys['W']) {
+                playerY = Math.max(0, playerY - playerSpeed);
+            }
+            if (keys['ArrowDown'] || keys['s'] || keys['S']) {
+                playerY = Math.min(window.innerHeight - 50, playerY + playerSpeed);
+            }
+            
+            // Atualizar posição
+            updatePlayerPosition();
+        }
+
+        function updatePlayerPosition() {
+            player.style.left = `${playerX}px`;
+            player.style.top = `${playerY}px`;
+        }
+
+        // ========== ELEMENTOS DO JOGO ==========
+        function createMeteor() {
+            if (!gameRunning) return;
+            
+            const meteor = document.createElement('div');
+            meteor.className = 'meteor';
+            meteor.style.left = `${Math.random() * (window.innerWidth - 40)}px`;
+            meteor.style.top = '-40px';
+            
+            // Configurações do meteoro
+            const phase = GAME_CONFIG.phases[currentPhase];
+            meteor.speed = 2 + Math.random() * phase.enemySpeed;
+            meteor.rotation = Math.random() * 360;
+            meteor.rotationSpeed = (Math.random() - 0.5) * 5;
+            
+            gameContainer.appendChild(meteor);
+            meteors.push(meteor);
+        }
+
+        function updateMeteors() {
+            meteors.forEach((meteor, index) => {
+                // Movimento
+                let y = parseFloat(meteor.style.top);
+                y += meteor.speed;
+                meteor.style.top = `${y}px`;
+                
+                // Rotação
+                meteor.rotation += meteor.rotationSpeed;
+                meteor.style.transform = `rotate(${meteor.rotation}deg)`;
+                
+                // Colisão com jogador
+                if (checkCollision(player, meteor)) {
+                    createExplosion(meteor);
+                    handlePlayerHit();
+                    meteor.remove();
+                    meteors.splice(index, 1);
+                    return;
+                }
+                
+                // Remover se sair da tela
+                if (y > window.innerHeight) {
+                    meteor.remove();
+                    meteors.splice(index, 1);
+                }
+            });
+        }
+
+        function createEnemy() {
+            if (!gameRunning || bossActive) return;
+            
+            const enemy = document.createElement('div');
+            enemy.className = 'enemy';
+            enemy.style.left = `${Math.random() * (window.innerWidth - 45)}px`;
+            enemy.style.top = '-45px';
+            
+            // Configurações do inimigo
+            const phase = GAME_CONFIG.phases[currentPhase];
+            enemy.speed = 1 + Math.random() * phase.enemySpeed;
+            enemy.health = 2;
+            enemy.shootCooldown = Math.floor(Math.random() * 100) + 50;
+            
+            gameContainer.appendChild(enemy);
+            enemies.push(enemy);
+        }
+
+        function updateEnemies() {
+            enemies.forEach((enemy, index) => {
+                // Movimento
+                let y = parseFloat(enemy.style.top);
+                y += enemy.speed;
+                enemy.style.top = `${y}px`;
+                
+                // Tiro aleatório
+                enemy.shootCooldown--;
+                if (enemy.shootCooldown <= 0) {
+                    createEnemyBullet(enemy);
+                    enemy.shootCooldown = Math.floor(Math.random() * 100) + 50;
+                }
+                
+                // Colisão com jogador
+                if (checkCollision(player, enemy)) {
+                    createExplosion(enemy);
+                    handlePlayerHit();
+                    enemy.remove();
+                    enemies.splice(index, 1);
+                    return;
+                }
+                
+                // Remover se sair da tela
+                if (y > window.innerHeight) {
+                    enemy.remove();
+                    enemies.splice(index, 1);
+                }
+            });
+        }
+
+        function createBoss() {
+            if (!gameRunning || bossActive) return;
+            
+            bossActive = true;
+            updateObjectiveDisplay();
+            showMessage("CHEFE INIMIGO APROACHING!", 2000);
+            
+            const boss = document.createElement('div');
+            boss.className = 'boss';
+            boss.style.left = `${window.innerWidth/2 - 40}px`;
+            boss.style.top = '-80px';
+            
+            // Configurações do boss
+            boss.speed = 1;
+            boss.health = GAME_CONFIG.bossHealth;
+            boss.direction = 1;
+            boss.shootCooldown = 30;
+            
+            gameContainer.appendChild(boss);
+            
+            // Movimento do boss
+            intervals.boss = setInterval(() => {
+                if (!gameRunning) return;
+                
+                let x = parseFloat(boss.style.left);
+                let y = parseFloat(boss.style.top);
+                
+                // Movimento horizontal
+                x += boss.speed * boss.direction;
+                if (x <= 0 || x >= window.innerWidth - 80) {
+                    boss.direction *= -1;
+                    y += 30;
+                }
+                
+                boss.style.left = `${x}px`;
+                boss.style.top = `${y}px`;
+                
+                // Tiro do boss
+                boss.shootCooldown--;
+                if (boss.shootCooldown <= 0) {
+                    createEnemyBullet(boss, true);
+                    boss.shootCooldown = 30;
+                }
+                
+                // Verificar colisão com jogador
+                if (checkCollision(player, boss)) {
+                    createExplosion(boss, true);
+                    handlePlayerHit();
+                }
+                
+                // Verificar morte do boss
+                if (boss.health <= 0) {
+                    createExplosion(boss, true);
+                    score += 100;
+                    updateScore();
+                    boss.remove();
+                    clearInterval(intervals.boss);
+                    bossActive = false;
+                    updateObjectiveDisplay();
+                    showMessage("CHEFE DESTRUÍDO! +100 PONTOS", 2000);
+                }
+            }, 30);
+        }
+
+        function createBullet(x, y, isEnemy = false) {
+            const bullet = document.createElement('div');
+            bullet.className = isEnemy ? 'bullet enemy-bullet' : 'bullet';
+            bullet.style.left = `${x}px`;
+            bullet.style.top = `${y}px`;
+            bullet.speed = isEnemy ? 5 : playerBulletSpeed;
+            bullet.isEnemy = isEnemy;
+            
+            gameContainer.appendChild(bullet);
+            bullets.push(bullet);
+        }
+
+        function createEnemyBullet(source, isBoss = false) {
+            const sourceRect = source.getBoundingClientRect();
+            const x = sourceRect.left + sourceRect.width/2 - 2.5;
+            const y = sourceRect.top + sourceRect.height;
+            
+            // Boss tem padrão de tiro diferente
+            if (isBoss) {
+                // Tiro triplo
+                createBullet(x - 15, y, true);
+                createBullet(x, y, true);
+                createBullet(x + 15, y, true);
+            } else {
+                createBullet(x, y, true);
+            }
+        }
+
+        function updateBullets() {
+            bullets.forEach((bullet, index) => {
+                // Movimento
+                let y = parseFloat(bullet.style.top);
+                y += bullet.isEnemy ? bullet.speed : -bullet.speed;
+                bullet.style.top = `${y}px`;
+                
+                // Colisões
+                if (bullet.isEnemy) {
+                    // Tiro inimigo - verificar colisão com jogador
+                    if (checkCollision(player, bullet)) {
+                        createExplosion(bullet);
+                        handlePlayerHit();
+                        bullet.remove();
+                        bullets.splice(index, 1);
+                        return;
+                    }
+                } else {
+                    // Tiro do jogador - verificar colisão com inimigos
+                    let hit = false;
+                    
+                    // Inimigos normais
+                    enemies.forEach((enemy, enemyIndex) => {
+                        if (checkCollision(bullet, enemy)) {
+                            enemy.health--;
+                            if (enemy.health <= 0) {
+                                createExplosion(enemy);
+                                score += 10;
+                                updateScore();
+                                enemy.remove();
+                                enemies.splice(enemyIndex, 1);
+                            }
+                            hit = true;
+                        }
+                    });
+                    
+                    // Meteoros
+                    meteors.forEach((meteor, meteorIndex) => {
+                        if (checkCollision(bullet, meteor)) {
+                            createExplosion(meteor);
+                            meteor.remove();
+                            meteors.splice(meteorIndex, 1);
+                            hit = true;
+                        }
+                    });
+                    
+                    // Boss
+                    if (bossActive) {
+                        const boss = document.querySelector('.boss');
+                        if (boss && checkCollision(bullet, boss)) {
+                            boss.health--;
+                            hit = true;
+                        }
+                    }
+                    
+                    if (hit) {
+                        bullet.remove();
+                        bullets.splice(index, 1);
+                        return;
+                    }
+                }
+                
+                // Remover se sair da tela
+                if (y < 0 || y > window.innerHeight) {
+                    bullet.remove();
+                    bullets.splice(index, 1);
+                }
+            });
+        }
+
+        function checkPowerupSpawn() {
+            if (!gameRunning) return;
+            
+            // Verificar se é hora de spawnar um powerup
+            if (Date.now() - lastPowerupTime > GAME_CONFIG.powerupInterval && Math.random() < 0.3) {
+                createPowerup();
+                lastPowerupTime = Date.now();
+            }
+        }
+
+        function createPowerup() {
+            const powerup = document.createElement('div');
+            const type = Math.random() > 0.5 ? 'health' : 'weapon';
+            
+            powerup.className = `powerup ${type}-powerup`;
+            powerup.style.left = `${Math.random() * (window.innerWidth - 30)}px`;
+            powerup.style.top = '-30px';
+            powerup.speed = 3;
+            powerup.type = type;
+            
+            gameContainer.appendChild(powerup);
+            powerups.push(powerup);
+        }
+
+        function updatePowerups() {
+            powerups.forEach((powerup, index) => {
+                // Movimento
+                let y = parseFloat(powerup.style.top);
+                y += powerup.speed;
+                powerup.style.top = `${y}px`;
+                
+                // Colisão com jogador
+                if (checkCollision(player, powerup)) {
+                    if (powerup.type === 'health') {
+                        health = Math.min(5, health + 1);
+                        updateHealth();
+                        showMessage("VIDA +1", 1000);
+                    } else {
+                        // Arma turbinada
+                        player.classList.add('player-upgrade');
+                        setTimeout(() => {
+                            player.classList.remove('player-upgrade');
+                        }, 10000);
+                        showMessage("ARMA MELHORADA TEMPORARIAMENTE!", 1000);
+                    }
+                    
+                    powerup.remove();
+                    powerups.splice(index, 1);
+                    return;
+                }
+                
+                // Remover se sair da tela
+                if (y > window.innerHeight) {
+                    powerup.remove();
+                    powerups.splice(index, 1);
+                }
+            });
+        }
+
+        function createExplosion(element, isLarge = false) {
+            const rect = element.getBoundingClientRect();
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            
+            // Posicionar no centro do elemento
+            explosion.style.left = `${rect.left + rect.width/2 - 25}px`;
+            explosion.style.top = `${rect.top + rect.height/2 - 25}px`;
+            
+            if (isLarge) {
+                explosion.style.width = '100px';
+                explosion.style.height = '100px';
+            }
+            
+            gameContainer.appendChild(explosion);
+            explosions.push(explosion);
+            
+            // Remover após animação
+            setTimeout(() => {
+                explosion.remove();
+                explosions = explosions.filter(e => e !== explosion);
+            }, 500);
+        }
+
+        function updateExplosions() {
+            // Atualizações necessárias (animação é feita via CSS)
+        }
+
+        function showMessage(text, duration = 2000) {
+            const message = document.createElement('div');
+            message.className = 'game-message';
+            message.textContent = text;
+            
+            gameContainer.appendChild(message);
+            messages.push(message);
+            
+            // Remover após duração
+            setTimeout(() => {
+                message.remove();
+                messages = messages.filter(m => m !== message);
+            }, duration);
+        }
+
+        // ========== LÓGICA DO JOGO ==========
+        function checkCollision(element1, element2) {
+            const rect1 = element1.getBoundingClientRect();
+            const rect2 = element2.getBoundingClientRect();
+            
+            return !(
+                rect1.right < rect2.left || 
+                rect1.left > rect2.right || 
+                rect1.bottom < rect2.top || 
+                rect1.top > rect2.bottom
+            );
+        }
+
+        function handlePlayerHit() {
+            health--;
+            updateHealth();
+            
+            // Efeito visual de dano
+            player.style.animation = 'none';
+            void player.offsetWidth; // Trigger reflow
+            player.style.animation = 'damageFlash 0.3s';
+            
+            if (health <= 0) {
+                gameOver();
+            } else {
+                showMessage("DANO TOMADO!", 1000);
+            }
+        }
+
+        function checkUpgrades() {
+            GAME_CONFIG.upgrades.forEach(upgrade => {
+                if (score >= upgrade.score && !player.classList.contains(`upgrade-${upgrade.score}`)) {
+                    // Aplicar upgrade
+                    health += upgrade.health;
+                    playerBulletSpeed += upgrade.bulletSpeed;
+                    playerSpeed += upgrade.playerSpeed;
+                    
+                    // Visual da nave melhorada
+                    player.classList.add('player-upgrade');
+                    player.classList.add(`upgrade-${upgrade.score}`);
+                    
+                    updateHealth();
+                    showMessage(`NAVE MELHORADA! +${upgrade.health} VIDA, +${upgrade.bulletSpeed} VELOCIDADE DE TIRO`, 2000);
+                }
+            });
+        }
+
+        function checkPhaseProgression() {
+            const phase = GAME_CONFIG.phases[currentPhase];
+            
+            if (score >= phase.goal && !bossActive && currentPhase < GAME_CONFIG.phases.length - 1) {
+                // Preparar transição de fase
+                gameRunning = false;
+                clearIntervals();
+                
+                // Mostrar tela de transição
+                phaseSummary.textContent = `Você completou ${phase.name}! Próximo: ${GAME_CONFIG.phases[currentPhase + 1].name}`;
+                phaseTransitionScreen.style.display = 'flex';
+            }
+        }
+
+        function startNextPhase() {
+            currentPhase++;
+            phaseTransitionScreen.style.display = 'none';
+            
+            // Resetar elementos do jogo
+            clearGameElements();
+            
+            // Atualizar interface
+            updatePhaseDisplay();
+            updateObjectiveDisplay();
+            
+            // Feedback ao jogador
+            showMessage(`Fase ${currentPhase + 1}: ${GAME_CONFIG.phases[currentPhase].name}\nObjetivo: ${GAME_CONFIG.phases[currentPhase].goal} pontos`, 3000);
+            
+            // Reiniciar loops do jogo com novos parâmetros
+            startGameLoops();
+            gameRunning = true;
+        }
+
+        function checkFinalVictory() {
+            const phase = GAME_CONFIG.phases[currentPhase];
+            
+            if (currentPhase === GAME_CONFIG.phases.length - 1 && score >= phase.goal && !bossActive) {
+                victory();
+            }
+        }
+
+        // ========== CONTROLES ==========
+        function handleKeyDown(e) {
+            keys[e.key] = true;
+            
+            // Disparar com espaço
+            if (e.key === ' ' && gameRunning) {
+                shoot();
+            }
+        }
+
+        function handleKeyUp(e) {
+            keys[e.key] = false;
+        }
+
+        function shoot() {
+            if (!gameRunning) return;
+            
+            const x = playerX + 22.5;
+            const y = playerY;
+            
+            // Tiro normal ou turbinado
+            if (player.classList.contains('player-upgrade')) {
+                // Tiro triplo
+                createBullet(x - 10, y);
+                createBullet(x, y);
+                createBullet(x + 10, y);
+            } else {
+                createBullet(x, y);
+            }
+        }
+
+        // ========== INTERFACE ==========
+        function updateScore() {
+            scoreDisplay.textContent = `Pontos: ${score}`;
+        }
+
+        function updateHealth() {
+            healthDisplay.textContent = `Vidas: ${health}`;
+        }
+
+        function updatePhaseDisplay() {
+            phaseDisplay.textContent = `Fase: ${currentPhase + 1} - ${GAME_CONFIG.phases[currentPhase].name}`;
+        }
+
+        function updateObjectiveDisplay() {
+            const phase = GAME_CONFIG.phases[currentPhase];
+            let objective;
+            
+            if (bossActive) {
+                objective = "Destrua o chefe inimigo!";
+            } else if (currentPhase === GAME_CONFIG.phases.length - 1 && score >= phase.goal) {
+                objective = "Encontre o portal seguro!";
+            } else {
+                objective = `Objetivo: ${phase.goal} pontos`;
+            }
+            
+            objectiveDisplay.textContent = objective;
+        }
+
+        // ========== ESTADOS DO JOGO ==========
+        function gameOver() {
+            gameRunning = false;
+            clearIntervals();
+            
+            finalScoreDisplay.textContent = `Sua pontuação: ${score}`;
+            gameOverScreen.style.display = 'flex';
+        }
+
+        function victory() {
+            gameRunning = false;
+            clearIntervals();
+            
+            victoryScoreDisplay.textContent = `Sua pontuação: ${score}`;
+            victoryScreen.style.display = 'flex';
+        }
+
+        function restartGame() {
+            gameOverScreen.style.display = 'none';
+            victoryScreen.style.display = 'none';
+            startGame();
+        }
+    </script>
+</body>
+</html>
