@@ -100,7 +100,7 @@
 
         /* ========== CONTROLES TOUCH (MOBILE) ========== */
         #mobile-controls {
-            position: fixed;
+            position: absolute;
             bottom: 20px;
             left: 0;
             width: 100%;
@@ -109,21 +109,6 @@
             padding: 0 20px;
             z-index: 30;
             display: none; /* Inicialmente oculto */
-            pointer-events: none; /* Permite clicar através dos controles */
-        }
-
-        .movement-controls {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            pointer-events: auto;
-        }
-
-        .movement-row {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
         }
 
         .mobile-btn {
@@ -142,13 +127,12 @@
         }
 
         #shoot-btn {
+            position: absolute;
+            right: 20px;
+            bottom: 100px;
             background-color: rgba(255, 50, 50, 0.3);
             width: 70px;
             height: 70px;
-            pointer-events: auto;
-            margin-right: 20px;
-            margin-bottom: 30px;
-            align-self: flex-end;
         }
 
         /* ========== ELEMENTOS DO JOGO ========== */
@@ -408,16 +392,10 @@
         
         <!-- Controles Touch (Mobile) -->
         <div id="mobile-controls">
-            <div class="movement-controls">
-                <div class="movement-row">
-                    <div class="mobile-btn" id="up-btn">↑</div>
-                </div>
-                <div class="movement-row">
-                    <div class="mobile-btn" id="left-btn">←</div>
-                    <div class="mobile-btn" id="down-btn">↓</div>
-                    <div class="mobile-btn" id="right-btn">→</div>
-                </div>
-            </div>
+            <div class="mobile-btn" id="left-btn">←</div>
+            <div class="mobile-btn" id="right-btn">→</div>
+            <div class="mobile-btn" id="up-btn">↑</div>
+            <div class="mobile-btn" id="down-btn">↓</div>
             <div class="mobile-btn" id="shoot-btn">🔫</div>
         </div>
         
@@ -574,56 +552,28 @@
         });
 
         function showInstructions() {
-            alert("CONTROLES:\n\nDESKTOP:\n- WASD ou Setas: Mover nave\n- Espaço: Atirar\n\nMOBILE:\n- Botões de movimento no lado esquerdo\n- Botão de tiro no lado direito\n\nOBJETIVO:\n- Sobreviva através de 4 fases\n- Destrua naves inimigas para pontos\n- Encontre o portal seguro!");
+            alert("CONTROLES:\n\nDESKTOP:\n- WASD ou Setas: Mover nave\n- Espaço: Atirar\n\nMOBILE:\n- Toque nos botões na tela\n\nOBJETIVO:\n- Sobreviva através de 4 fases\n- Destrua naves inimigas para pontos\n- Encontre o portal seguro!");
         }
 
         function setupTouchControls() {
             // Configurar controles touch
-            leftBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                touchControls.left = true;
-            });
-            leftBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                touchControls.left = false;
-            });
+            leftBtn.addEventListener('touchstart', () => touchControls.left = true);
+            leftBtn.addEventListener('touchend', () => touchControls.left = false);
             
-            rightBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                touchControls.right = true;
-            });
-            rightBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                touchControls.right = false;
-            });
+            rightBtn.addEventListener('touchstart', () => touchControls.right = true);
+            rightBtn.addEventListener('touchend', () => touchControls.right = false);
             
-            upBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                touchControls.up = true;
-            });
-            upBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                touchControls.up = false;
-            });
+            upBtn.addEventListener('touchstart', () => touchControls.up = true);
+            upBtn.addEventListener('touchend', () => touchControls.up = false);
             
-            downBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                touchControls.down = true;
-            });
-            downBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                touchControls.down = false;
-            });
+            downBtn.addEventListener('touchstart', () => touchControls.down = true);
+            downBtn.addEventListener('touchend', () => touchControls.down = false);
             
-            shootBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
+            shootBtn.addEventListener('touchstart', () => {
                 touchControls.shoot = true;
                 if (gameRunning) shoot();
             });
-            shootBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                touchControls.shoot = false;
-            });
+            shootBtn.addEventListener('touchend', () => touchControls.shoot = false);
         }
 
         function startGame() {
@@ -1039,3 +989,364 @@
             // Verificar se é hora de spawnar um powerup
             if (Date.now() - lastPowerupTime > GAME_CONFIG.powerupInterval && Math.random() < 0.3) {
                 createPowerup();
+                lastPowerupTime = Date.now();
+            }
+        }
+
+        function createPowerup() {
+            const powerup = document.createElement('div');
+            const type = Math.random() > 0.5 ? 'health' : 'weapon';
+            
+            powerup.className = `powerup ${type}-powerup`;
+            powerup.style.left = `${Math.random() * (window.innerWidth - 30)}px`;
+            powerup.style.top = '-30px';
+            powerup.speed = 3;
+            powerup.type = type;
+            
+            gameContainer.appendChild(powerup);
+            powerups.push(powerup);
+        }
+
+        function updatePowerups() {
+            powerups.forEach((powerup, index) => {
+                // Movimento
+                let y = parseFloat(powerup.style.top);
+                y += powerup.speed;
+                powerup.style.top = `${y}px`;
+                
+                // Colisão com jogador
+                if (checkCollision(player, powerup)) {
+                    applyPowerup(powerup.type);
+                    powerup.remove();
+                    powerups.splice(index, 1);
+                    return;
+                }
+                
+                // Remover se sair da tela
+                if (y > window.innerHeight) {
+                    powerup.remove();
+                    powerups.splice(index, 1);
+                }
+            });
+        }
+
+        function applyPowerup(type) {
+            if (type === 'health') {
+                health = Math.min(5, health + 1);
+                updateHealth();
+                showMessage("VIDA EXTRA!", 1500);
+            } else {
+                playerBulletSpeed += 2;
+                showMessage("TIRO POTENCIADO!", 1500);
+                setTimeout(() => {
+                    playerBulletSpeed -= 2;
+                }, 10000);
+            }
+        }
+
+        function createExplosion(element, isLarge = false) {
+            const rect = element.getBoundingClientRect();
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            
+            if (isLarge) {
+                explosion.style.width = '100px';
+                explosion.style.height = '100px';
+            }
+            
+            explosion.style.left = `${rect.left + rect.width/2 - 25}px`;
+            explosion.style.top = `${rect.top + rect.height/2 - 25}px`;
+            
+            gameContainer.appendChild(explosion);
+            explosions.push(explosion);
+            
+            // Remover após animação
+            setTimeout(() => {
+                explosion.remove();
+                explosions.splice(explosions.indexOf(explosion), 1);
+            }, 500);
+        }
+
+        function updateExplosions() {
+            // A animação é feita via CSS, então só precisamos limpar as explosões concluídas
+            explosions.forEach((explosion, index) => {
+                if (!document.body.contains(explosion)) {
+                    explosions.splice(index, 1);
+                }
+            });
+        }
+
+        // ========== LÓGICA DO JOGO ==========
+        function checkCollision(element1, element2) {
+            const rect1 = element1.getBoundingClientRect();
+            const rect2 = element2.getBoundingClientRect();
+            
+            return !(
+                rect1.right < rect2.left || 
+                rect1.left > rect2.right || 
+                rect1.bottom < rect2.top || 
+                rect1.top > rect2.bottom
+            );
+        }
+
+        function handlePlayerHit() {
+            health--;
+            updateHealth();
+            
+            // Efeito visual de dano
+            player.classList.add('hit');
+            setTimeout(() => player.classList.remove('hit'), 300);
+            
+            // Verificar game over
+            if (health <= 0) {
+                gameOver();
+            }
+        }
+
+        function checkUpgrades() {
+            GAME_CONFIG.upgrades.forEach(upgrade => {
+                if (score >= upgrade.score && 
+                    (playerSpeed < 8 + upgrade.playerSpeed || 
+                     playerBulletSpeed < 10 + upgrade.bulletSpeed)) {
+                    
+                    // Aplicar upgrade
+                    playerSpeed += upgrade.playerSpeed;
+                    playerBulletSpeed += upgrade.bulletSpeed;
+                    health = Math.min(5, health + upgrade.health);
+                    
+                    updateHealth();
+                    showMessage("NÍVEL AUMENTADO!", 2000);
+                }
+            });
+        }
+
+        function checkPhaseProgression() {
+            const phase = GAME_CONFIG.phases[currentPhase];
+            
+            if (score >= phase.goal && !bossActive) {
+                // Se for a última fase, vitória
+                if (currentPhase === GAME_CONFIG.phases.length - 1) {
+                    victory();
+                } else {
+                    // Caso contrário, avançar para próxima fase
+                    completePhase();
+                }
+            }
+        }
+
+        function completePhase() {
+            gameRunning = false;
+            clearIntervals();
+            
+            // Mostrar tela de transição
+            phaseSummary.textContent = `Você completou ${GAME_CONFIG.phases[currentPhase].name}!`;
+            phaseTransitionScreen.style.display = 'flex';
+        }
+
+        function startNextPhase() {
+            currentPhase++;
+            phaseTransitionScreen.style.display = 'none';
+            
+            // Resetar elementos do jogo
+            clearGameElements();
+            
+            // Atualizar HUD
+            updatePhaseDisplay();
+            updateObjectiveDisplay();
+            
+            // Iniciar próxima fase
+            startGameLoops();
+            
+            // Feedback ao jogador
+            showMessage(`Fase ${currentPhase + 1}: ${GAME_CONFIG.phases[currentPhase].name}\nObjetivo: ${GAME_CONFIG.phases[currentPhase].goal} pontos`, 3000);
+        }
+
+        function checkFinalVictory() {
+            if (currentPhase === GAME_CONFIG.phases.length - 1 && 
+                score >= GAME_CONFIG.phases[currentPhase].goal && 
+                !bossActive) {
+                victory();
+            }
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            clearIntervals();
+            
+            // Mostrar tela de game over
+            finalScoreDisplay.textContent = `Sua pontuação: ${score}`;
+            gameOverScreen.style.display = 'flex';
+        }
+
+        function victory() {
+            gameRunning = false;
+            clearIntervals();
+            
+            // Mostrar tela de vitória
+            victoryScoreDisplay.textContent = `Sua pontuação: ${score}`;
+            victoryScreen.style.display = 'flex';
+        }
+
+        function restartGame() {
+            // Voltar ao menu principal
+            gameOverScreen.style.display = 'none';
+            victoryScreen.style.display = 'none';
+            phaseTransitionScreen.style.display = 'none';
+            menu.style.display = 'flex';
+        }
+
+        // ========== ATUALIZAÇÃO DA INTERFACE ==========
+        function updateScore() {
+            scoreDisplay.textContent = `Pontos: ${score}`;
+        }
+
+        function updateHealth() {
+            healthDisplay.textContent = `Vidas: ${health}`;
+        }
+
+        function updatePhaseDisplay() {
+            phaseDisplay.textContent = `Fase: ${currentPhase + 1} - ${GAME_CONFIG.phases[currentPhase].name}`;
+        }
+
+        function updateObjectiveDisplay() {
+            const phase = GAME_CONFIG.phases[currentPhase];
+            let objective = `Objetivo: Alcance ${phase.goal} pontos`;
+            
+            if (bossActive) {
+                objective = "DESTRUA O CHEFE INIMIGO!";
+            } else if (phase.boss) {
+                objective = `Objetivo: ${phase.goal} pontos (Chefe em breve)`;
+            }
+            
+            objectiveDisplay.textContent = objective;
+        }
+
+        function showMessage(text, duration) {
+            const message = document.createElement('div');
+            message.className = 'hud';
+            message.style.position = 'absolute';
+            message.style.top = '50%';
+            message.style.left = '50%';
+            message.style.transform = 'translate(-50%, -50%)';
+            message.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+            message.style.padding = '15px 25px';
+            message.style.borderRadius = '10px';
+            message.style.textAlign = 'center';
+            message.style.whiteSpace = 'pre-line';
+            message.textContent = text;
+            
+            gameContainer.appendChild(message);
+            
+            setTimeout(() => {
+                message.style.transition = 'opacity 0.5s';
+                message.style.opacity = '0';
+                setTimeout(() => message.remove(), 500);
+            }, duration);
+        }
+
+        // ========== CONTROLES ==========
+        function handleKeyDown(e) {
+            keys[e.key] = true;
+            
+            // Atirar com espaço
+            if (e.key === ' ' && gameRunning) {
+                shoot();
+            }
+        }
+
+        function handleKeyUp(e) {
+            keys[e.key] = false;
+        }
+
+        function shoot() {
+            if (!gameRunning) return;
+            
+            const rect = player.getBoundingClientRect();
+            const x = rect.left + rect.width/2 - 2;
+            const y = rect.top;
+            
+            createBullet(x, y);
+        }
+
+        // ========== INSTRUÇÕES MELHORADAS ==========
+        function showInstructions() {
+            // Criar elemento de instruções
+            const instructions = document.createElement('div');
+            instructions.id = 'instructions-overlay';
+            instructions.style.position = 'fixed';
+            instructions.style.top = '0';
+            instructions.style.left = '0';
+            instructions.style.width = '100%';
+            instructions.style.height = '100%';
+            instructions.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+            instructions.style.display = 'flex';
+            instructions.style.flexDirection = 'column';
+            instructions.style.justifyContent = 'center';
+            instructions.style.alignItems = 'center';
+            instructions.style.zIndex = '200';
+            instructions.style.color = '#fff';
+            instructions.style.padding = '20px';
+            instructions.style.textAlign = 'center';
+            
+            // Conteúdo das instruções
+            instructions.innerHTML = `
+                <h2 style="color: #4af; margin-bottom: 20px;">INSTRUÇÕES</h2>
+                <div style="max-width: 600px; margin-bottom: 30px; line-height: 1.6;">
+                    <p><strong>CONTROLES:</strong></p>
+                    <p>DESKTOP:<br>- WASD ou Setas: Mover nave<br>- Espaço: Atirar</p>
+                    <p>MOBILE:<br>- Toque nos botões na tela</p>
+                    
+                    <p style="margin-top: 20px;"><strong>OBJETIVO:</strong></p>
+                    <p>- Sobreviva através de 4 fases intergalácticas<br>
+                    - Destrua naves inimigas e meteoros para ganhar pontos<br>
+                    - Colete powerups para ganhar vantagens<br>
+                    - Derrote os chefes inimigos<br>
+                    - Encontre o portal seguro no final da jornada!</p>
+                    
+                    <p style="margin-top: 20px;"><strong>DICAS:</strong></p>
+                    <p>- Fique atento aos padrões de movimento dos inimigos<br>
+                    - Powerups de saúde aparecem quando você está com pouca vida<br>
+                    - Seus tiros ficam mais fortes conforme você avança</p>
+                </div>
+                
+                <div style="margin-top: 20px; font-size: 0.9em; color: #aaa;">
+                    <p>Desenvolvido por <span id="developer-name" style="color: #4af; cursor: pointer; text-decoration: underline;">Gledison Arruda Andrade</span></p>
+                </div>
+                
+                <button id="close-instructions" class="menu-btn" style="margin-top: 30px;">Fechar</button>
+            `;
+            
+            // Adicionar ao documento
+            document.body.appendChild(instructions);
+            
+            // Evento para fechar instruções
+            document.getElementById('close-instructions').addEventListener('click', () => {
+                instructions.style.transition = 'opacity 0.3s';
+                instructions.style.opacity = '0';
+                setTimeout(() => instructions.remove(), 300);
+            });
+            
+            // Evento para mostrar informações do desenvolvedor
+            document.getElementById('developer-name').addEventListener('click', () => {
+                alert("Desenvolvedor: Gledison Arruda Andrade\n\nEste jogo foi criado como um projeto de demonstração de habilidades em desenvolvimento de jogos web com HTML5, CSS3 e JavaScript puro.");
+            });
+            
+            // Versão mobile - touch
+            document.getElementById('developer-name').addEventListener('touchend', (e) => {
+                e.preventDefault();
+                alert("Desenvolvedor: Gledison Arruda Andrade\n\nEste jogo foi criado como um projeto de demonstração de habilidades em desenvolvimento de jogos web com HTML5, CSS3 e JavaScript puro.");
+            });
+        }
+
+        // ========== AJUSTES DE TELA ==========
+        window.addEventListener('resize', () => {
+            if (gameRunning) {
+                // Manter jogador dentro dos limites
+                playerX = Math.max(0, Math.min(window.innerWidth - 50, playerX));
+                playerY = Math.max(0, Math.min(window.innerHeight - 50, playerY));
+                updatePlayerPosition();
+            }
+        });
+    </script>
+</body>
+</html>
