@@ -99,32 +99,54 @@
         }
 
         /* ========== CONTROLES TOUCH (MOBILE) ========== */
-        #mobile-controls {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 20px;
-            z-index: 30;
-            display: none; /* Inicialmente oculto */
-        }
+       
+#mobile-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 30;
+    display: none; /* Inicialmente oculto */
+}
 
-        .mobile-btn {
-            width: 60px;
-            height: 60px;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 24px;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-        }
+.mobile-btn {
+    width: 60px;
+    height: 60px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 24px;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+}
+
+/* Botões de mover nave */
+#left-btn, #right-btn {
+    position: absolute;
+    bottom: 100px;
+    left: 20px;
+    background-color: rgba(50, 50, 255, 0.3);
+    width: 70px;
+    height: 70px;
+}
+
+/* Botão de tiro */
+#shoot-btn {
+    position: absolute;
+    bottom: 100px;
+    right: 20px;
+    background-color: rgba(255, 50, 50, 0.3);
+    width: 70px;
+    height: 70px;
+}
+
 
         #shoot-btn {
             position: absolute;
@@ -392,11 +414,12 @@
         
         <!-- Controles Touch (Mobile) -->
         <div id="mobile-controls">
-            <div class="mobile-btn" id="left-btn">←</div>
-            <div class="mobile-btn" id="right-btn">→</div>
-            <div class="mobile-btn" id="up-btn">↑</div>
-            <div class="mobile-btn" id="down-btn">↓</div>
-            <div class="mobile-btn" id="shoot-btn">🔫</div>
+    <div id="left-btn" class="mobile-btn">←</div>
+    <div id="right-btn" class="mobile-btn">→</div>
+    <div id="shoot-btn" class="mobile-btn">⨀</div>
+</div>
+
+           
         </div>
         
         <!-- Telas de Estado do Jogo -->
