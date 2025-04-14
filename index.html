@@ -98,56 +98,42 @@
             background: #000;
         }
 
-       
         /* ========== CONTROLES TOUCH (MOBILE) ========== */
- #mobile-controls {
-     position: absolute;
-     bottom: 20px;
-     left: 0;
-     width: 100%;
-     display: flex;
-     justify-content: space-between;
-     padding: 0 20px;
-     z-index: 30;
-     display: block; /* Tornar visível */
- }
+        #mobile-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 30;
+            display: none; /* Inicialmente oculto */
+        }
 
- .mobile-btn {
-     width: 60px;
-     height: 60px;
-     background-color: rgba(255, 255, 255, 0.2);
-     border-radius: 50%;
-     display: flex;
-     justify-content: center;
-     align-items: center;
-     color: white;
-     font-size: 24px;
-     user-select: none;
-     -webkit-user-select: none;
-     touch-action: manipulation;
- }
+        .mobile-btn {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
 
- /* Botões de mover nave */
- #left-btn, #right-btn {
-     position: absolute;
-     bottom: 100px;
-     left: 20px;
-     background-color: rgba(50, 50, 255, 0.3);
-     width: 70px;
-     height: 70px;
- }
-
- /* Botão de tiro */
- #shoot-btn {
-     position: absolute;
-     bottom: 100px;
-     right: 20px;
-     background-color: rgba(255, 50, 50, 0.3);
-     width: 70px;
-     height: 70px;
- }
- ```
-
+        #shoot-btn {
+            position: absolute;
+            right: 20px;
+            bottom: 100px;
+            background-color: rgba(255, 50, 50, 0.3);
+            width: 70px;
+            height: 70px;
+        }
 
         /* ========== ELEMENTOS DO JOGO ========== */
         #player {
@@ -404,13 +390,13 @@
         <!-- Elementos do Jogo -->
         <div id="player"></div>
         
-         <div id="mobile-controls">
-     <div id="left-btn" class="mobile-btn">←</div>
-     <div id="right-btn" class="mobile-btn">→</div>
-     <div id="shoot-btn" class="mobile-btn">⨀</div>
- </div>
- ```
-           
+        <!-- Controles Touch (Mobile) -->
+        <div id="mobile-controls">
+            <div class="mobile-btn" id="left-btn">←</div>
+            <div class="mobile-btn" id="right-btn">→</div>
+            <div class="mobile-btn" id="up-btn">↑</div>
+            <div class="mobile-btn" id="down-btn">↓</div>
+            <div class="mobile-btn" id="shoot-btn">🔫</div>
         </div>
         
         <!-- Telas de Estado do Jogo -->
@@ -500,68 +486,48 @@
         const phaseSummary = document.getElementById('phase-summary');
 
         // Controles Mobile
-      document.addEventListener('DOMContentLoaded', (event) => {
-    const ship = document.getElementById('ship');
-    const leftBtn = document.getElementById('left-btn');
-    const rightBtn = document.getElementById('right-btn');
-    const shootBtn = document.getElementById('shoot-btn');
+        const mobileControls = document.getElementById('mobile-controls');
+        const leftBtn = document.getElementById('left-btn');
+        const rightBtn = document.getElementById('right-btn');
+        const upBtn = document.getElementById('up-btn');
+        const downBtn = document.getElementById('down-btn');
+        const shootBtn = document.getElementById('shoot-btn');
 
-    let shipSpeed = 10; // Velocidade de movimento da nave
-    let isMovingLeft = false;
-    let isMovingRight = false;
-
-    // Funções de movimento
-    function moveShipLeft() {
-        isMovingLeft = true;
-        moveShip();
-    }
-
-    function moveShipRight() {
-        isMovingRight = true;
-        moveShip();
-    }
-
-    function stopShip() {
-        isMovingLeft = false;
-        isMovingRight = false;
-    }
-
-    function moveShip() {
-        if (isMovingLeft) {
-            ship.style.left = (parseInt(ship.style.left) - shipSpeed) + 'px';
-        }
-        if (isMovingRight) {
-            ship.style.left = (parseInt(ship.style.left) + shipSpeed) + 'px';
-        }
-        requestAnimationFrame(moveShip);
-    }
-
-    // Função de tiro
-    function shoot() {
-        const bullet = document.createElement('div');
-        bullet.classList.add('bullet');
-        bullet.style.left = ship.offsetLeft + (ship.offsetWidth / 2) - 5 + 'px';
-        bullet.style.bottom = ship.offsetHeight + 'px';
-        document.getElementById('game-area').appendChild(bullet);
-
-        // Animação do tiro
-        const bulletInterval = setInterval(() => {
-            bullet.style.bottom = (parseInt(bullet.style.bottom) + 10) + 'px';
-            if (parseInt(bullet.style.bottom) > window.innerHeight) {
-                bullet.remove();
-                clearInterval(bulletInterval);
-            }
-        }, 20);
-    }
-
-    // Eventos de toque
-    leftBtn.addEventListener('touchstart', moveShipLeft);
-    leftBtn.addEventListener('touchend', stopShip);
-    rightBtn.addEventListener('touchstart', moveShipRight);
-    rightBtn.addEventListener('touchend', stopShip);
-    shootBtn.addEventListener('touchstart', shoot);
-});
-
+        // Estado do jogo
+        let playerX = window.innerWidth / 2;
+        let playerY = window.innerHeight - 100;
+        let playerSpeed = 8;
+        let playerBulletSpeed = 10;
+        let score = 0;
+        let health = 3;
+        let currentPhase = 0;
+        let gameRunning = false;
+        let bossActive = false;
+        let lastPowerupTime = 0;
+        
+        // Arrays de elementos
+        let meteors = [];
+        let enemies = [];
+        let bullets = [];
+        let powerups = [];
+        let explosions = [];
+        
+        // Controles
+        let keys = {};
+        let touchControls = {
+            left: false,
+            right: false,
+            up: false,
+            down: false,
+            shoot: false
+        };
+        let intervals = {
+            game: null,
+            meteor: null,
+            enemy: null,
+            powerup: null,
+            boss: null
+        };
 
         // ========== INICIALIZAÇÃO DO JOGO ==========
         document.addEventListener('DOMContentLoaded', () => {
