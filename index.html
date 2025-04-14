@@ -121,7 +121,7 @@
     justify-content: center;
     align-items: center;
     color: white;
-    font-size: 15px;
+    font-size: 60px;
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
@@ -509,12 +509,52 @@
         const phaseSummary = document.getElementById('phase-summary');
 
         // Controles Mobile
-        const mobileControls = document.getElementById('mobile-controls');
-        const leftBtn = document.getElementById('left-btn');
-        const rightBtn = document.getElementById('right-btn');
-        const upBtn = document.getElementById('up-btn');
-        const downBtn = document.getElementById('down-btn');
-        const shootBtn = document.getElementById('shoot-btn');
+       document.addEventListener('DOMContentLoaded', (event) => {
+     const leftBtn = document.getElementById('left-btn');
+     const rightBtn = document.getElementById('right-btn');
+     const shootBtn = document.getElementById('shoot-btn');
+
+     leftBtn.addEventListener('touchstart', () => {
+         moveShipLeft();
+     });
+
+     leftBtn.addEventListener('touchend', () => {
+         stopShip();
+     });
+
+     rightBtn.addEventListener('touchstart', () => {
+         moveShipRight();
+     });
+
+     rightBtn.addEventListener('touchend', () => {
+         stopShip();
+     });
+
+     shootBtn.addEventListener('touchstart', () => {
+         shoot();
+     });
+ });
+
+ function moveShipLeft() {
+     console.log('Movendo nave para a esquerda');
+     // Adicione aqui a lógica para mover a nave para a esquerda
+ }
+
+ function moveShipRight() {
+     console.log('Movendo nave para a direita');
+     // Adicione aqui a lógica para mover a nave para a direita
+ }
+
+ function stopShip() {
+     console.log('Parando nave');
+     // Adicione aqui a lógica para parar a nave
+ }
+
+ function shoot() {
+     console.log('Atirando');
+     // Adicione aqui a lógica para atirar
+ }
+ ```
 
         // Estado do jogo
         let playerX = window.innerWidth / 2;
